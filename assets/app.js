@@ -1,37 +1,34 @@
 const STORAGE_KEY='cooinmo_fincas_v2';
+const LEAD_KEY='cooinmo_leads_v1';
 const demoFincas=[
 {id:'demo-1',titulo:'Olivar tradicional en Aguilar de la Frontera',provincia:'Córdoba',municipio:'Aguilar de la Frontera',tipo:'Olivar',superficie:'20 ha',precio:'600.000 €',descripcion:'20 ha · Secano · Explotación agrícola',estado:'Destacada',imagen:'p1',demo:true},
 {id:'demo-2',titulo:'Explotación de olivar de gran dimensión',provincia:'Jaén',municipio:'',tipo:'Olivar',superficie:'25+ ha',precio:'Precio a consultar',descripcion:'25+ ha · Alta producción · Consultar',estado:'Oportunidad',imagen:'p2',demo:true},
 {id:'demo-3',titulo:'Gran explotación de almendro y secano',provincia:'Granada',municipio:'',tipo:'Almendro',superficie:'68 ha',precio:'Precio a consultar',descripcion:'68 ha · Explotación agrícola',estado:'Novedad',imagen:'p3',demo:true},
 {id:'demo-4',titulo:'Finca agrícola con agua',provincia:'Málaga',municipio:'',tipo:'Regadío',superficie:'Consultar',precio:'Consultar',descripcion:'Pozo · Cultivos productivos',estado:'Regadío',imagen:'p4',demo:true}
 ];
-
-function getFincas(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return [...x,...demoFincas]}catch(e){return demoFincas}}
-function saveFincas(f){localStorage.setItem(STORAGE_KEY,JSON.stringify(f))}
-function escapeHtml(s){return String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
-
+const read=(key,fallback=[])=>{try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}};
+const write=(key,data)=>localStorage.setItem(key,JSON.stringify(data));
+const escapeHtml=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+function getFincas(){return [...read(STORAGE_KEY,[]),...demoFincas]}
 function renderPublicFincas(){
- const box=document.getElementById('cards'); if(!box)return;
- const custom=getFincas().filter(x=>!x.demo);
- custom.forEach(x=>{
-  const article=document.createElement('article');article.className='card finca';article.dataset.p=x.provincia||'';article.dataset.t=x.tipo||'';
-  article.innerHTML=`<div class="pic p4"><span>${escapeHtml(x.estado||'NOVEDAD').toUpperCase()}</span></div><div class="body"><small>${escapeHtml((x.tipo||'FINCA')+' · '+(x.provincia||'ANDALUCÍA')).toUpperCase()}</small><h3>${escapeHtml(x.titulo)}</h3><p>${escapeHtml(x.descripcion||x.superficie||'Consultar')}</p><b>${escapeHtml(x.precio||'Consultar')}</b><a href="#vender">Solicitar información →</a></div>`;
+ const box=document.getElementById('cards');if(!box)return;
+ box.querySelectorAll('.dynamic-finca').forEach(x=>x.remove());
+ getFincas().filter(x=>!x.demo).forEach(x=>{
+  const article=document.createElement('article');article.className='card finca dynamic-finca';article.dataset.p=x.provincia||'';article.dataset.t=x.tipo||'';
+  const image=(x.fotos||x.imagen||'').split(',')[0].trim();
+  const bg=image?` style="background-image:url('${image.replaceAll("'","%27")}')"`:'';
+  article.innerHTML=`<div class="pic p4"${bg}><span>${escapeHtml(x.estado||'NOVEDAD').toUpperCase()}</span></div><div class="body"><small>${escapeHtml(((x.tipo||'FINCA')+' · '+(x.provincia||'ANDALUCÍA')).toUpperCase())}</small><h3>${escapeHtml(x.titulo||'Finca agrícola')}</h3><p>${escapeHtml(x.descripcion||x.superficie||'Consultar')}${x.agua?' · '+escapeHtml(x.agua):''}</p><b>${escapeHtml(x.precio||'Consultar')}</b><a href="#contacto" onclick="selectFarmContact('${escapeHtml(x.id||'')}')">Solicitar información →</a></div>`;
   box.prepend(article);
  });
 }
-
+window.selectFarmContact=id=>{const f=read(STORAGE_KEY,[]).find(x=>x.id===id);if(!f)return;const msg=`Consulta COOINMO: ${f.titulo||'Finca'}${f.municipio?' · '+f.municipio:''}`;const tel=String(f.telefono||'').replace(/\D/g,'');if(tel)window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,'_blank');};
 function filtrar(){
- const p=document.getElementById('prov').value,t=document.getElementById('tipo').value;let n=0;
+ const p=document.getElementById('prov')?.value||'',t=document.getElementById('tipo')?.value||'';let n=0;
  document.querySelectorAll('.finca').forEach(x=>{const ok=(!p||x.dataset.p===p)&&(!t||x.dataset.t===t);x.style.display=ok?'block':'none';if(ok)n++});
  const none=document.getElementById('none');if(none)none.hidden=n>0;
 }
-
-function mailForm(form,subject){
- form.addEventListener('submit',e=>{e.preventDefault();const d=new FormData(e.target);let b='';for(const [k,v] of d)b+=k+': '+v+'\n';location.href='mailto:fincas@cooinmo.es?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(b)})
+function registerLead(data){const leads=read(LEAD_KEY,[]);leads.unshift({...data,id:'lead-'+Date.now(),createdAt:new Date().toISOString()});write(LEAD_KEY,leads)}
+function mailForm(form,subject,type){
+ form.addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));registerLead({...d,tipoLead:type});const b=Object.entries(d).map(([k,v])=>`${k}: ${v}`).join('\n');location.href='mailto:fincas@cooinmo.es?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(b);form.reset();});
 }
-
-document.addEventListener('DOMContentLoaded',()=>{
- renderPublicFincas();
- const form=document.getElementById('form');if(form)mailForm(form,'Solicitud de venta de finca COOINMO');
- const buyer=document.getElementById('buyerForm');if(buyer)mailForm(buyer,'Nueva búsqueda de finca COOINMO');
-});
+document.addEventListener('DOMContentLoaded',()=>{renderPublicFincas();const form=document.getElementById('form');if(form)mailForm(form,'Solicitud de venta de finca COOINMO','propietario');const buyer=document.getElementById('buyerForm');if(buyer)mailForm(buyer,'Nueva búsqueda de finca COOINMO','comprador');});
