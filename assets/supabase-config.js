@@ -1,7 +1,6 @@
 // COOINMO · Supabase configuration
-// Pega aquí la URL de tu proyecto y tu Publishable Key.
-// No pongas nunca una secret/service_role key en archivos públicos.
+// La Publishable Key puede estar en el frontend. Nunca pongas aquí una secret/service_role key.
 window.COINMO_SUPABASE_CONFIG = {
-  url: '',
-  publishableKey: ''
+  url: 'https://rlaaogklulltpjrmjaap.supabase.co',
+  publishableKey: 'sb_publishable_yOs-wroA5yxMpGkjLAu3KA_GSZ3Nv6N'
 };
