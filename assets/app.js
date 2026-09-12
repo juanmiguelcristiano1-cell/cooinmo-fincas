@@ -11,7 +11,7 @@ const demoFincas=[
 ];
 const read=(key,fallback=[])=>{try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}};
 const write=(key,data)=>localStorage.setItem(key,JSON.stringify(data));
-const escapeHtml=s=>String(s??'').replace(/[&<>'\\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\\"':'&quot;'}[c]));
+const escapeHtml=s=>String(s??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
 let publicFincas=[];
 async function loadPublicFincas(){
   if(cloudReady){
