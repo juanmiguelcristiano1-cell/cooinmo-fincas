@@ -11,7 +11,7 @@ const demoFincas=[
 ];
 const read=(key,fallback=[])=>{try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}};
 const write=(key,data)=>localStorage.setItem(key,JSON.stringify(data));
-const escapeHtml=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));
+const escapeHtml=s=>String(s??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
 let publicFincas=[];
 async function loadPublicFincas(){
   if(cloudReady){
@@ -29,9 +29,9 @@ async function renderPublicFincas(){
   data.filter(x=>!x.demo).forEach(x=>{
     const article=document.createElement('article');article.className='card finca dynamic-finca';article.dataset.p=x.provincia||'';article.dataset.t=x.tipo||'';
     const image=(x.fotos||x.imagen||'').split(',')[0].trim();
-    const bg=image?` style="background-image:url('${image.replaceAll("'","%27")}')"`:'';
+    const bg=image?` style=\"background-image:url('${image.replaceAll("'","%27")}')\"`:'';
     const contactId=String(x.id||'').replaceAll("'",'');
-    article.innerHTML=`<div class="pic p4"${bg}><span>${escapeHtml(x.estado||'NOVEDAD').toUpperCase()}</span></div><div class="body"><small>${escapeHtml(((x.tipo||'FINCA')+' · '+(x.provincia||'ANDALUCÍA')).toUpperCase())}</small><h3>${escapeHtml(x.titulo||'Finca agrícola')}</h3><p>${escapeHtml(x.descripcion||x.superficie||'Consultar')}${x.agua?' · '+escapeHtml(x.agua):''}</p><b>${escapeHtml(x.precio||'Consultar')}</b><a href="#contacto" onclick="selectFarmContact('${contactId}')">Solicitar información →</a></div>`;
+    article.innerHTML=`<div class=\"pic p4\"${bg}><span>${escapeHtml(x.estado||'NOVEDAD').toUpperCase()}</span></div><div class=\"body\"><small>${escapeHtml(((x.tipo||'FINCA')+' · '+(x.provincia||'ANDALUCÍA')).toUpperCase())}</small><h3>${escapeHtml(x.titulo||'Finca agrícola')}</h3><p>${escapeHtml(x.descripcion||x.superficie||'Consultar')}${x.agua?' · '+escapeHtml(x.agua):''}</p><b>${escapeHtml(x.precio||'Consultar')}</b><a href=\"#contacto\" onclick=\"selectFarmContact('${contactId}')\">Solicitar información →</a></div>`;
     box.prepend(article);
   });
 }
@@ -43,5 +43,8 @@ async function registerLead(data){
   if(cloudReady){const {error}=await sb.from('leads').insert(payload);if(!error)return true;console.warn('COOINMO lead cloud:',error.message)}
   const leads=read(LEAD_KEY,[]);leads.unshift({...data,id:'lead-'+Date.now(),createdAt:new Date().toISOString()});write(LEAD_KEY,leads);return false;
 }
-function mailForm(form,subject,type){form.addEventListener('submit',async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));await registerLead({tipo_lead:type,...d});const b=Object.entries(d).map(([k,v])=>`${k}: ${v}`).join('\n');location.href='mailto:cooinmoes@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(b);form.reset();});}
-document.addEventListener('DOMContentLoaded',async()=>{await renderPublicFincas();const form=document.getElementById('form');if(form)mailForm(form,'Solicitud de venta de finca COOINMO','propietario');const buyer=document.getElementById('buyerForm');if(buyer)mailForm(buyer,'Nueva búsqueda de finca COOINMO','comprador');});
+function mailForm(form,subject,type){form.addEventListener('submit',async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));await registerLead({tipo_lead:type,...d});const b=Object.entries(d).map(([k,v])=>`${k}: ${v}`).join('\\n');location.href='mailto:cooinmoes@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(b);form.reset();});}
+document.addEventListener('DOMContentLoaded',async()=>{await renderPublicFincas();const form=document.getElementById('form');if(form)mailForm(form,'Solicitud de venta de finca COOINMO','propietario');const buyer=document.getElementById('buyerForm');if(buyer)mailForm(buyer,'Nueva búsqueda de finca COOINMO','comprador');
+  const card=[...document.querySelectorAll('.finca')].find(x=>x.querySelector('h3')?.textContent.includes('Explotación de olivar de gran dimensión'));
+  if(card){card.dataset.p='Jaén';card.dataset.t='Olivar';const pic=card.querySelector('.pic');if(pic){pic.className='pic';pic.style.backgroundImage="url('linares-01.jpg')";pic.style.backgroundSize='cover';pic.style.backgroundPosition='center';pic.innerHTML='<span>OPORTUNIDAD</span>';}const body=card.querySelector('.body');if(body)body.innerHTML='<small>OLIVAR REGADÍO · JAÉN</small><h3>Venta 1.800 olivos de regadío</h3><p>99.999 m² · 99,99 ha · Entre Linares y Bailén · Riego por goteo · Dos sondeos legales · Vivienda · Naves · Piscina</p><b>449.000 € · 4,49 €/m²</b><a href="finca-linares-bailen.html">Ver finca →</a>';}
+});
