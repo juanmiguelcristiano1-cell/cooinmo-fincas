@@ -7,7 +7,7 @@ const demoFincas=[
 {id:'demo-1',titulo:'Olivar tradicional en Aguilar de la Frontera',provincia:'Córdoba',municipio:'Aguilar de la Frontera',tipo:'Olivar',superficie:'20 ha',precio:'600.000 €',descripcion:'20 ha · Secano · Explotación agrícola',estado:'Destacada',imagen:'p1',demo:true},
 {id:'demo-2',titulo:'Explotación de olivar de gran dimensión',provincia:'Jaén',municipio:'',tipo:'Olivar',superficie:'25+ ha',precio:'Precio a consultar',descripcion:'25+ ha · Alta producción · Consultar',estado:'Oportunidad',imagen:'p2',demo:true},
 {id:'demo-3',titulo:'Gran explotación de almendro y secano',provincia:'Granada',municipio:'',tipo:'Almendro',superficie:'68 ha',precio:'Precio a consultar',descripcion:'68 ha · Explotación agrícola',estado:'Novedad',imagen:'p3',demo:true},
-{id:'demo-4',titulo:'Finca agrícola con agua',provincia:'Málaga',municipio:'',tipo:'Regadío',superficie:'Consultar',precio:'Consultar',descripcion:'Pozo · Cultivos productivos',estado:'Regadío',imagen:'p4',demo:true}
+{id:'demo-4',titulo:'Gran olivar de regadío',provincia:'Jaén',municipio:'Jaén · Polígono 1 · Parcela 114',tipo:'Olivar',superficie:'140.000 m² · 14 ha',precio:'3,14 €/m²',descripcion:'Olivar de un pie · Marco 6 × 8 · Arbequina · 15 años · Regadío instalado y funcionando',estado:'Novedad',imagen:'jaen-120ha-01.jpg',demo:true}
 ];
 const read=(key,fallback=[])=>{try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}};
 const write=(key,data)=>localStorage.setItem(key,JSON.stringify(data));
@@ -26,7 +26,7 @@ async function renderPublicFincas(){
   const box=document.getElementById('cards');if(!box)return;
   box.querySelectorAll('.dynamic-finca').forEach(x=>x.remove());
   const data=await loadPublicFincas();
-  data.filter(x=>!x.demo).forEach(x=>{
+  data.filter(x=>!x.demo && String(x.titulo||'').trim()!=='Finca agrícola con agua').forEach(x=>{
     const article=document.createElement('article');article.className='card finca dynamic-finca';article.dataset.p=x.provincia||'';article.dataset.t=x.tipo||'';
     const image=(x.fotos||x.imagen||'').split(',')[0].trim();
     const bg=image?` style=\"background-image:url('${image.replaceAll("'","%27")}')\"`:'';
@@ -52,14 +52,4 @@ document.addEventListener('DOMContentLoaded',async()=>{
   if(card){card.dataset.p='Jaén';card.dataset.t='Olivar';const pic=card.querySelector('.pic');if(pic){pic.className='pic';pic.style.backgroundImage="url('linares-01.jpg')";pic.style.backgroundSize='cover';pic.style.backgroundPosition='center';pic.innerHTML='<span>OPORTUNIDAD</span>';}const body=card.querySelector('.body');if(body)body.innerHTML='<small>OLIVAR REGADÍO · JAÉN</small><h3>Venta 1.800 olivos de regadío</h3><p>99.999 m² · 99,99 ha · Entre Linares y Bailén · Riego por goteo · Dos sondeos legales · Vivienda · Naves · Piscina</p><b>449.000 € · 4,49 €/m²</b><a href="finca-linares-bailen.html">Ver finca →</a>';}
   const benamejiCard=[...document.querySelectorAll('.finca')].find(x=>x.querySelector('h3')?.textContent.includes('Gran explotación de almendro y secano'));
   if(benamejiCard){benamejiCard.dataset.p='Córdoba';benamejiCard.dataset.t='Olivar';const pic=benamejiCard.querySelector('.pic');if(pic){pic.className='pic';pic.style.backgroundImage="url('baena-02.jpg')";pic.style.backgroundSize='cover';pic.style.backgroundPosition='center';pic.innerHTML='<span>NOVEDAD</span>';}const body=benamejiCard.querySelector('.body');if(body)body.innerHTML='<small>OLIVAR · BENAMEJÍ · CÓRDOBA</small><h3>Finca Olivos Benamejí</h3><p>20 fanegas · Cerca de 2.000 Hojiblanca · Olivos de un pie · 3 pozos · Nave con luz · 3 km del pueblo</p><b>550.000 €</b><a href="finca-benameji.html">Ver finca →</a>';}
-  if(!document.querySelector('[data-cooinmo-jaen120]')){
-    const box=document.getElementById('cards');
-    if(box){
-      const article=document.createElement('article');
-      article.className='card finca';
-      article.dataset.p='Jaén';article.dataset.t='Olivar';article.setAttribute('data-cooinmo-jaen120','1');
-      article.innerHTML='<div class="pic" style="overflow:hidden;position:relative"><img src="./jaen-120ha-01.jpg?v=20260912" alt="Olivar de la finca de 120 hectáreas en Jaén" style="display:block;width:100%;height:100%;min-height:220px;object-fit:cover;object-position:center"><span>NOVEDAD</span></div><div class="body"><small>OLIVAR · JAÉN</small><h3>Espectacular finca de olivos</h3><p>120 ha · 22.500 olivos aprox. · Entre Andújar y Guarromán · A pie de carretera · 2 pozos · Riego por goteo</p><b>5,42 €/m² · 1.200.000 m²</b><a href="finca-120ha-jaen.html">Ver finca →</a></div>';
-      box.prepend(article);
-    }
-  }
 });
