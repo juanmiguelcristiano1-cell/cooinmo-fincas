@@ -11,7 +11,7 @@ const demoFincas=[
 ];
 const read=(key,fallback=[])=>{try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}};
 const write=(key,data)=>localStorage.setItem(key,JSON.stringify(data));
-const escapeHtml=s=>String(s??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[c]));
+const escapeHtml=s=>String(s??'').replace(/[&<>'\\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\\"':'&quot;'}[c]));
 let publicFincas=[];
 async function loadPublicFincas(){
   if(cloudReady){
@@ -44,10 +44,22 @@ async function registerLead(data){
   const leads=read(LEAD_KEY,[]);leads.unshift({...data,id:'lead-'+Date.now(),createdAt:new Date().toISOString()});write(LEAD_KEY,leads);return false;
 }
 function mailForm(form,subject,type){form.addEventListener('submit',async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));await registerLead({tipo_lead:type,...d});const b=Object.entries(d).map(([k,v])=>`${k}: ${v}`).join('\\n');location.href='mailto:cooinmoes@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(b);form.reset();});}
-document.addEventListener('DOMContentLoaded',async()=>{await renderPublicFincas();const form=document.getElementById('form');if(form)mailForm(form,'Solicitud de venta de finca COOINMO','propietario');const buyer=document.getElementById('buyerForm');if(buyer)mailForm(buyer,'Nueva búsqueda de finca COOINMO','comprador');
+document.addEventListener('DOMContentLoaded',async()=>{
+  await renderPublicFincas();
+  const form=document.getElementById('form');if(form)mailForm(form,'Solicitud de venta de finca COOINMO','propietario');
+  const buyer=document.getElementById('buyerForm');if(buyer)mailForm(buyer,'Nueva búsqueda de finca COOINMO','comprador');
   const card=[...document.querySelectorAll('.finca')].find(x=>x.querySelector('h3')?.textContent.includes('Explotación de olivar de gran dimensión'));
   if(card){card.dataset.p='Jaén';card.dataset.t='Olivar';const pic=card.querySelector('.pic');if(pic){pic.className='pic';pic.style.backgroundImage="url('linares-01.jpg')";pic.style.backgroundSize='cover';pic.style.backgroundPosition='center';pic.innerHTML='<span>OPORTUNIDAD</span>';}const body=card.querySelector('.body');if(body)body.innerHTML='<small>OLIVAR REGADÍO · JAÉN</small><h3>Venta 1.800 olivos de regadío</h3><p>99.999 m² · 99,99 ha · Entre Linares y Bailén · Riego por goteo · Dos sondeos legales · Vivienda · Naves · Piscina</p><b>449.000 € · 4,49 €/m²</b><a href="finca-linares-bailen.html">Ver finca →</a>';}
   const benamejiCard=[...document.querySelectorAll('.finca')].find(x=>x.querySelector('h3')?.textContent.includes('Gran explotación de almendro y secano'));
   if(benamejiCard){benamejiCard.dataset.p='Córdoba';benamejiCard.dataset.t='Olivar';const pic=benamejiCard.querySelector('.pic');if(pic){pic.className='pic';pic.style.backgroundImage="url('baena-02.jpg')";pic.style.backgroundSize='cover';pic.style.backgroundPosition='center';pic.innerHTML='<span>NOVEDAD</span>';}const body=benamejiCard.querySelector('.body');if(body)body.innerHTML='<small>OLIVAR · BENAMEJÍ · CÓRDOBA</small><h3>Finca Olivos Benamejí</h3><p>20 fanegas · Cerca de 2.000 Hojiblanca · Olivos de un pie · 3 pozos · Nave con luz · 3 km del pueblo</p><b>550.000 €</b><a href="finca-benameji.html">Ver finca →</a>';}
-  if(!document.querySelector('[data-cooinmo-jaen120]')){const box=document.getElementById('cards');if(box){const article=document.createElement('article');article.className='card finca';article.dataset.p='Jaén';article.dataset.t='Olivar';article.setAttribute('data-cooinmo-jaen120','1');article.innerHTML='<div class="pic" style="background-image:url(\'jaen-120ha-01.jpg\');background-size:cover;background-position:center"><span>NOVEDAD</span></div><div class="body"><small>OLIVAR · JAÉN</small><h3>Espectacular finca de olivos</h3><p>120 ha · 22.500 olivos aprox. · Entre Andújar y Guarromán · A pie de carretera · 2 pozos · Riego por goteo</p><b>5,42 €/m² · 1.200.000 m²</b><a href="finca-120ha-jaen.html">Ver finca →</a></div>';box.prepend(article);}}
+  if(!document.querySelector('[data-cooinmo-jaen120]')){
+    const box=document.getElementById('cards');
+    if(box){
+      const article=document.createElement('article');
+      article.className='card finca';
+      article.dataset.p='Jaén';article.dataset.t='Olivar';article.setAttribute('data-cooinmo-jaen120','1');
+      article.innerHTML='<div class="pic" style="overflow:hidden;position:relative"><img src="./jaen-120ha-01.jpg?v=20260912" alt="Olivar de la finca de 120 hectáreas en Jaén" style="display:block;width:100%;height:100%;min-height:220px;object-fit:cover;object-position:center"><span>NOVEDAD</span></div><div class="body"><small>OLIVAR · JAÉN</small><h3>Espectacular finca de olivos</h3><p>120 ha · 22.500 olivos aprox. · Entre Andújar y Guarromán · A pie de carretera · 2 pozos · Riego por goteo</p><b>5,42 €/m² · 1.200.000 m²</b><a href="finca-120ha-jaen.html">Ver finca →</a></div>';
+      box.prepend(article);
+    }
+  }
 });
